@@ -1,0 +1,13 @@
+# wrangler.toml
+
+# 你的 Worker 项目名称，必须和 Cloudflare 上的名字一致
+name = "atri" 
+
+# 你的主入口 JS 文件名
+# 假设你的 JS 文件叫 atri.js，就写 "atri.js"
+# 如果叫 index.js，就写 "index.js"
+main = "main.js"
+
+# 兼容性日期，确保 Worker 行为一致
+# 可以用今天的日期
+compatibility_date = "2025-12-15"
