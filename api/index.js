@@ -23,7 +23,7 @@ export default async function handler(request) {
   // 3. 构造转发 URL
   const targetUrl = new URL(url.pathname + url.search, UPSTREAM_URL);
 
-  // 4. 请求头处理 (关键)
+  // 4. 请求头处理
   const headers = new Headers(request.headers);
   headers.set('Host', UPSTREAM_HOST);
   headers.set('Referer', `https://${UPSTREAM_HOST}/`);
@@ -39,10 +39,9 @@ export default async function handler(request) {
       method: request.method,
       headers: headers,
       body: request.body,
-      redirect: 'manual', // 禁止自动重定向
+      redirect: 'manual',
     });
 
-    // 5. 返回结果
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
