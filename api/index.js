@@ -1,35 +1,38 @@
-// api/index.js
+// 文件路径: api/index.js
+
 export const config = {
-  runtime: 'edge', // 必须使用 Edge Runtime，速度快且支持流式传输
+  runtime: 'edge', // 必须开启 Edge Runtime 以支持流式传输
+  // regions: ['sin1'], // 可选：指定新加坡节点 (离国内近)，或者不写让它自动选择
 };
 
 export default async function handler(request) {
   const url = new URL(request.url);
 
-  // 1. 拦截浏览器根目录访问 (防止你自己测试时晕头转向)
+  // 1. 健康检查：防止浏览器直接访问报错
   if (url.pathname === '/' || url.pathname === '/index.html') {
-    return new Response('AnyRouter Vercel Proxy is Active. \nPlease set ANTHROPIC_BASE_URL to https://atri.juayohuang.top', {
+    return new Response('AnyRouter Proxy on Vercel is Active.', {
       status: 200,
-      headers: { 'Content-Type': 'text/plain' }
+      headers: { 'Content-Type': 'text/plain' },
     });
   }
 
-  // 2. 定义上游 (AnyRouter)
-  // 根据你的情报，Base URL 是 anyrouter.top
+  // 2. 上游地址配置
   const UPSTREAM_HOST = 'anyrouter.top';
   const UPSTREAM_URL = `https://${UPSTREAM_HOST}`;
   
-  // 3. 构造目标 URL
+  // 3. 构造转发 URL
   const targetUrl = new URL(url.pathname + url.search, UPSTREAM_URL);
 
-  // 4. 清洗 Headers (关键)
+  // 4. 请求头处理 (关键)
   const headers = new Headers(request.headers);
   headers.set('Host', UPSTREAM_HOST);
   headers.set('Referer', `https://${UPSTREAM_HOST}/`);
-  // 移除 Vercel 特有头部，伪装成普通请求
+  
+  // 移除 Vercel 标记，防止被上游识别
   headers.delete('x-vercel-id');
   headers.delete('x-vercel-deployment-url');
   headers.delete('x-forwarded-for');
+  headers.delete('x-real-ip');
 
   try {
     const response = await fetch(targetUrl, {
@@ -39,13 +42,13 @@ export default async function handler(request) {
       redirect: 'manual', // 禁止自动重定向
     });
 
-    // 5. 返回响应
+    // 5. 返回结果
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: 'Proxy Error', details: e.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
   }
 }
