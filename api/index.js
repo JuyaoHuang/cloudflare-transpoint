@@ -17,7 +17,7 @@ export default async function handler(request) {
   }
 
   // 2. 上游地址配置
-  const UPSTREAM_HOST = 'anyrouter.top';
+  const UPSTREAM_HOST = 'c.cspok.cn';
   const UPSTREAM_URL = `https://${UPSTREAM_HOST}`;
   
   // 3. 构造转发 URL
