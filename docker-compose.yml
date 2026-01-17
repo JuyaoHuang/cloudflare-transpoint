@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  nginx-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: anyrouter-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      # 如果需要 HTTPS，取消下面的注释并配置证书
+      - "443:443"
+    volumes:
+      # 挂载配置文件（方便修改配置无需重建镜像）
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # 挂载日志目录（持久化日志）
+      - ./logs:/var/log/nginx
+      # 挂载 SSL 证书
+      - ./certs:/etc/nginx/certs:ro
+    networks:
+      - proxy-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  proxy-network:
+    driver: bridge
